@@ -1,0 +1,532 @@
+PayarMove Pay — Cross-Border Mobility Payments
+Project: PayarMove Pay
+Company: PayarMove Platforms Africa Ltd
+Network: Stellar
+Primary Asset: USDC
+Target Users: Renters, vehicle owners/hosts, and mobility platforms
+MVP Environment: Stellar Testnet
+
+
+
+1. Project Overview
+PayarMove is building a peer-to-peer vehicle rental platform designed to make mobility more accessible across emerging markets.
+A key infrastructure challenge is enabling fast, affordable cross-border payments, rental deposits, and host payouts between renters and vehicle owners.
+For example, a traveler visiting Kenya may want to rent a vehicle from a local host but have limited options for making a fast international payment. Traditional payment systems can introduce:
+High transaction fees
+Settlement delays
+Regional restrictions
+Limited payment methods
+Difficult cross-border payouts
+PayarMove Pay will address this by providing a Stellar-powered payment infrastructure layer for PayarMove's internal applications.
+The initial MVP will enable a renter to make a payment in Stellar USDC, track the payment, and demonstrate the movement of funds through the PayarMove platform.
+The longer-term vision is to evolve PayarMove Pay into a payment API for mobility, travel, rental, and marketplace businesses operating across emerging markets.
+
+2. Product Goal
+Build a simple cross-border payment infrastructure that supports the core rental payment lifecycle:
+Create Rental → Generate Payment → Customer Pays → Payment Verified → Host Receives/Is Credited
+The MVP should demonstrate how Stellar can reduce friction around international payments between renters and vehicle owners.
+
+3. Core MVP Flow
+Renter
+   ↓
+Select Vehicle
+   ↓
+Create Rental
+   ↓
+Payment Request
+   ↓
+Pay with Stellar USDC
+   ↓
+Wallet Confirmation
+   ↓
+Stellar Transaction
+   ↓
+PayarMove Verification
+   ↓
+Payment Confirmed
+   ↓
+Host Payment/Payout Recorded
+
+4. — PayarMove Payment Engine
+Description
+Build the core payment infrastructure that allows PayarMove to create, process, and verify rental payments using Stellar.
+The payment engine should be designed as a reusable service that can eventually support other PayarMove applications and external platforms.
+Required Functionality
+The engine should support:
+Creating a payment request
+Associating payment with a rental
+Specifying payment amount
+Specifying Stellar asset
+Generating a unique payment ID
+Accepting customer payment
+Monitoring Stellar transaction
+Verifying payment
+Updating payment status
+Recording transaction hash
+
+5. Payment Object
+Each rental payment should have a unique identifier.
+Example:
+Payment ID:
+PM-2026-00125
+
+Rental ID:
+RENT-00125
+
+Amount:
+150 USDC
+
+Network:
+Stellar Testnet
+
+Status:
+Pending
+Suggested payment states:
+CREATED
+   ↓
+AWAITING_PAYMENT
+   ↓
+PAYMENT_SUBMITTED
+   ↓
+VERIFYING
+   ↓
+PAID
+Exception states:
+FAILED
+EXPIRED
+CANCELLED
+
+6. — Rental Payment Interface
+Create a simple renter-facing payment experience.
+Example
+Toyota Corolla
+Nairobi, Kenya
+Rental: 3 days
+Rental amount: 150 USDC
+Security deposit: 100 USDC
+Total: 250 USDC
+Payment Method
+Stellar USDC
+CTA:
+Pay 250 USDC
+
+Payment Review
+Before signing, the customer should see:
+Vehicle
+Rental dates
+Rental amount
+Deposit
+Fees, if applicable
+Total amount
+Recipient
+Network
+Asset
+This gives the renter a clear understanding of exactly what they are approving.
+
+7. Wallet Integration
+MVP Wallet
+Support at least one Stellar-compatible wallet, preferably Freighter.
+Customer flow:
+Pay 250 USDC
+      ↓
+Connect Wallet
+      ↓
+Review Transaction
+      ↓
+Approve
+      ↓
+Transaction Submitted
+      ↓
+Payment Confirmed
+Additional wallets can be added later.
+
+8. — Payment Verification
+PayarMove must verify payments on the Stellar network before marking a rental as paid.
+The backend should verify:
+Transaction exists
+Transaction succeeded
+Correct Stellar network
+Correct recipient
+Correct asset
+Correct amount
+Correct rental/payment reference where applicable
+Example:
+Payment Request
+      ↓
+250 USDC
+      ↓
+Stellar Transaction
+      ↓
+Verify
+      ↓
+✓ Correct wallet
+✓ Correct asset
+✓ Correct amount
+✓ Successful transaction
+      ↓
+Payment = CONFIRMED
+
+9. — Host Payout Ledger
+For the MVP, create a basic mechanism for tracking what is owed to the vehicle owner.
+Example:
+Rental Amount       150 USDC
+Platform Fee         15 USDC
+Host Amount         135 USDC
+The system should record:
+Rental ID
+Renter
+Host
+Gross rental amount
+Platform fee
+Host payout amount
+Payment status
+Payout status
+Transaction hash where applicable
+MVP approach
+The prototype does not necessarily need a sophisticated automated payout system.
+A basic payout ledger demonstrating:
+Customer payment → Host amount owed
+is sufficient for the initial workflow.
+
+10. — Rental/Payment Dashboard
+Build a minimal dashboard for PayarMove administrators/hosts.
+Dashboard Overview
+Display:
+Total Payments
+$4,250 USDC
+
+Confirmed
+$3,500 USDC
+
+Pending
+$750 USDC
+
+Host Payouts
+$3,200 USDC
+
+Rental Payments
+Example:
+Rental
+Vehicle
+Amount
+Status
+Host
+RENT-001
+Toyota Corolla
+250 USDC
+Paid
+John
+RENT-002
+Honda Fit
+180 USDC
+Pending
+Mary
+RENT-003
+Mazda Demio
+300 USDC
+Paid
+David
+
+
+11. Payment Details
+Clicking a payment should display:
+Rental
+RENT-00125
+Vehicle
+Toyota Corolla
+Renter
+GABC...XYZ
+Host
+GDEF...123
+Amount
+250 USDC
+Platform Fee
+25 USDC
+Host Amount
+225 USDC
+Status
+Paid
+Stellar Transaction
+Transaction Hash
+CTA:
+View Transaction
+
+12. Security Deposit
+A rental deposit should be represented separately from the rental payment.
+Example:
+Rental Fee
+150 USDC
+
+Security Deposit
+100 USDC
+
+Total
+250 USDC
+For the MVP, the deposit lifecycle can be represented as:
+Deposit Requested
+       ↓
+Deposit Paid
+       ↓
+Deposit Held
+       ↓
+Rental Completed
+       ↓
+Deposit Released
+Important MVP Scope
+The first version does not need to implement complex dispute resolution or automated deposit arbitration.
+The system should demonstrate the payment and tracking states clearly.
+
+13. Designer Requirements
+Renter Experience
+Design:
+Vehicle/rental summary
+Payment screen
+Payment breakdown
+Wallet connection
+Transaction confirmation
+Processing state
+Payment successful
+Payment failed
+Payment pending
+
+Host Experience
+Design:
+Host dashboard
+Rental payments
+Payment details
+Expected payout
+Payout status
+Transaction details
+
+Admin Experience
+Design:
+Payment overview
+Rental/payment list
+Payment details
+Host payout ledger
+Transaction verification status
+
+14. UX Requirements
+The interface should make blockchain invisible wherever possible.
+Avoid presenting technical information such as:
+Transaction submitted to Horizon.
+Instead show:
+Payment processing…
+Technical information can be available under:
+Transaction Details
+where the user can access:
+Transaction hash
+Stellar network
+Wallet addresses
+Explorer link
+
+15. Backend Architecture
+Suggested architecture:
+                 PAYARMOVE
+                      |
+                Rental Platform
+                      |
+                PayarMove Pay
+                      |
+          +-----------+-----------+
+          |                       |
+     Payment Engine          Payout Ledger
+          |                       |
+          +-----------+-----------+
+                      |
+                 Stellar
+                      |
+                  USDC
+                      |
+                User Wallet
+PayarMove Pay should be developed as a separate payment service layer, rather than tightly coupling Stellar functionality to the rental frontend.
+This will make it easier to eventually expose the payment infrastructure through an API.
+16. Suggested API Structure
+The MVP can expose endpoints conceptually similar to:
+POST /payments
+GET  /payments/:id
+POST /payments/:id/verify
+GET  /payments/:id/status
+GET  /rentals/:id/payment
+GET  /hosts/:id/payouts
+Example payment creation:
+{
+  rental_id: "RENT-00125",
+  amount: 250,
+  asset: "USDC",
+  network: "stellar-testnet",
+  renter_wallet: "GABC...",
+  host_wallet: "GDEF..."
+}
+The exact API structure can be adjusted to PayarMove's existing architecture.
+
+17. Suggested Data Model
+Rental
+rental_id
+vehicle_id
+renter_id
+host_id
+start_date
+end_date
+rental_amount
+deposit_amount
+status
+Payment
+payment_id
+rental_id
+renter_wallet
+recipient_wallet
+amount
+asset
+network
+status
+transaction_hash
+created_at
+updated_at
+Payout
+payout_id
+rental_id
+host_id
+gross_amount
+platform_fee
+net_amount
+status
+transaction_hash
+created_at
+
+18. Development Plan
+Architecture + Design
+Designer
+Rental payment flow
+Payment breakdown
+Wallet flow
+Payment states
+Host dashboard
+Admin dashboard
+Developers
+Review existing PayarMove architecture
+Define payment service
+Define API
+Define payment data model
+Configure Stellar Testnet
+Set up wallet integration
+Output: Approved designs + technical architecture.
+
+— Payment Engine
+Build:
+Payment creation
+Rental/payment association
+Stellar USDC integration
+Wallet connection
+Transaction signing
+Transaction submission
+Output: Renter can initiate a Stellar payment for a rental.
+
+Verification + Dashboard
+Build:
+Transaction verification
+Payment status
+Rental payment history
+Host payout ledger
+Dashboard
+Payment details
+Output:
+Rental
+ ↓
+Payment
+ ↓
+Stellar
+ ↓
+Verification
+ ↓
+Dashboard
+works end-to-end.
+
+Week 4 — Testing + Demo
+Test:
+Successful payment
+Insufficient balance
+Failed transaction
+Incorrect amount
+Incorrect recipient
+Duplicate payment
+Expired payment
+Deposit payment
+Payment verification
+Host payout calculation
+Then:
+Fix bugs
+Polish UI
+Deploy Testnet MVP
+Document payment architecture
+Capture Stellar transaction evidence
+Record final demo
+
+19. MVP Acceptance Criteria
+Payment Engine
+Rental can generate a payment request.
+Payment has a unique ID.
+Payment supports Stellar USDC.
+Customer can connect Stellar wallet.
+Customer can sign payment.
+Transaction can be submitted.
+Transaction can be verified.
+Payment status updates correctly.
+Rental Platform
+Rental is associated with payment.
+Customer sees rental/payment breakdown.
+Successful payment changes rental payment status.
+Deposit can be represented separately.
+Host payout amount can be calculated.
+Dashboard
+Admin can view payments.
+Host can view relevant rental payments.
+Payment details are accessible.
+Payment status is visible.
+Transaction hash is recorded.
+Host payout status is visible.
+
+20. Future API Vision
+The MVP should be architected with a future PayarMove Pay API in mind.
+Long term, another mobility platform could integrate:
+Third-Party Mobility Platform
+          ↓
+     PayarMove Pay API
+          ↓
+     Payment Request
+          ↓
+       Stellar
+          ↓
+       USDC
+Potential future capabilities:
+Cross-border rental payments
+Host payouts
+Security deposits
+Refunds
+Payment links
+QR payments
+Webhooks
+Payment reconciliation
+Multiple Stellar assets
+Merchant APIs
+Marketplace payments
+These should not be allowed to expand the MVP beyond the core payment demonstration.
+21. Final Demo
+The final demo should demonstrate a realistic cross-border rental scenario:
+A traveler books a vehicle in Kenya → PayarMove generates a rental payment request → renter selects Stellar USDC → connects their Stellar wallet → approves the payment → transaction is submitted → PayarMove verifies the transaction on Stellar → rental is marked Paid → host dashboard shows the amount owed to the vehicle owner.
+Evidence to Capture
+Working PayarMove testnet application
+Rental creation
+Payment request
+Wallet connection
+Payment confirmation
+Stellar transaction hash
+On-chain transaction verification
+Updated rental status
+Host payout calculation
+Dashboard showing completed payment
+Short end-to-end demo video
+GitHub repository/documentation
+Final Product Statement
+PayarMove Pay is a Stellar-powered payment infrastructure layer for cross-border mobility, enabling renters to make fast digital payments and giving vehicle owners and mobility platforms a simpler way to track and manage rental payments and payouts.
+

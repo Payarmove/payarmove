@@ -1,0 +1,2028 @@
+openapi: 3.0.3
+info:
+  title: PayarMove Pay API
+  version: 1.0.0
+  description: Institutional cross-border mobility payments, identity verification
+    (KYC), Stellar Freighter wallet connect (SEP-0010), and Soroban smart contract
+    escrow.
+servers:
+  - url: https://api.payarmove.com
+    description: Production API Server (api.payarmove.com)
+  - url: http://173.214.172.222:8000
+    description: VPS Direct Host (173.214.172.222)
+  - url: http://localhost:8000
+    description: Local Development Server
+paths:
+  /api/v1/auth/me/:
+    get:
+      operationId: auth_me_retrieve
+      description: Returns profile details, connected wallets, and current KYC tier
+        status.
+      summary: Get current user profile
+      tags:
+      - Authentication
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+    put:
+      operationId: auth_me_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserProfileRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+    patch:
+      operationId: auth_me_partial_update
+      description: Update user profile details.
+      summary: Update current user profile
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserProfileRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+          description: ''
+  /api/v1/auth/signin/:
+    post:
+      operationId: auth_signin_create
+      description: Authenticates user credentials and returns JWT access and refresh
+        tokens.
+      summary: Sign in with email and password
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSigninRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserSigninRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserSigninRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: JWT Token Pair & Profile
+  /api/v1/auth/signup/:
+    post:
+      operationId: auth_signup_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSignupRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserSignupRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserSignupRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserSignup'
+          description: ''
+  /api/v1/auth/token/refresh/:
+    post:
+      operationId: auth_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/v1/auth/wallet/challenge/:
+    post:
+      operationId: auth_wallet_challenge_create
+      description: Generates an unsigned SEP-0010 challenge transaction in base64
+        XDR format for Freighter wallet signing.
+      summary: Request SEP-0010 Stellar challenge transaction
+      tags:
+      - Wallet Connect (SEP-0010)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletChallengeRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WalletChallengeRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WalletChallengeRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletChallengeResponse'
+          description: ''
+  /api/v1/auth/wallet/verify/:
+    post:
+      operationId: auth_wallet_verify_create
+      description: Verifies cryptographic signature from Freighter/Stellar wallet.
+        Logs in or auto-creates user account.
+      summary: Verify signed SEP-0010 challenge transaction
+      tags:
+      - Wallet Connect (SEP-0010)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletVerifyRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WalletVerifyRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WalletVerifyRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          description: Verified Wallet & JWT Tokens
+  /api/v1/dashboard/admin/summary/:
+    get:
+      operationId: dashboard_admin_summary_retrieve
+      description: Returns system-wide payment volume, confirmations, host disbursements,
+        and KYC queue counts.
+      summary: Platform administrative overview metrics
+      tags:
+      - Analytics & Dashboards
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDashboard'
+          description: ''
+  /api/v1/dashboard/host/summary/:
+    get:
+      operationId: dashboard_host_summary_retrieve
+      description: Returns metrics specific to the authenticated vehicle host.
+      summary: Host earnings and bookings summary
+      tags:
+      - Analytics & Dashboards
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HostDashboard'
+          description: ''
+  /api/v1/escrow/{rental_id}/:
+    get:
+      operationId: escrow_retrieve
+      summary: Query on-chain escrow state and lock status
+      parameters:
+      - in: path
+        name: rental_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Soroban Smart Contract Escrow
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscrowStatus'
+          description: ''
+  /api/v1/escrow/{rental_id}/dispute/:
+    post:
+      operationId: escrow_dispute_create
+      summary: Resolve vehicle deposit dispute (Admin / Arbitrator only)
+      parameters:
+      - in: path
+        name: rental_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Soroban Smart Contract Escrow
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EscrowDisputeRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EscrowDisputeRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EscrowDisputeRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscrowStatus'
+          description: ''
+  /api/v1/escrow/{rental_id}/settle/:
+    post:
+      operationId: escrow_settle_create
+      description: 'Invokes smart contract complete_and_disburse: Host gets 90%, Platform
+        gets 10%, Renter gets 100% deposit refund.'
+      summary: Settle rental and trigger automated payout distribution
+      parameters:
+      - in: path
+        name: rental_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Soroban Smart Contract Escrow
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscrowStatus'
+          description: ''
+  /api/v1/escrow/{rental_id}/submit-deposit/:
+    post:
+      operationId: escrow_submit_deposit_create
+      description: Verifies smart contract deposit on Stellar Testnet and activates
+        rental booking.
+      summary: Submit deposit transaction hash from Freighter
+      parameters:
+      - in: path
+        name: rental_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Soroban Smart Contract Escrow
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EscrowDepositSubmitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EscrowDepositSubmitRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EscrowDepositSubmitRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EscrowStatus'
+          description: ''
+  /api/v1/escrow/prepare/{rental_id}/:
+    post:
+      operationId: escrow_prepare_create
+      description: Initializes agreement terms and returns parameters for Freighter
+        wallet smart contract invocation.
+      summary: Prepare Soroban Escrow deposit payload
+      parameters:
+      - in: path
+        name: rental_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Soroban Smart Contract Escrow
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: Escrow contract invocation arguments
+  /api/v1/kyc/admin/applications/:
+    get:
+      operationId: kyc_admin_applications_list
+      description: Admin endpoint to audit submitted KYC records.
+      summary: List all KYC applications
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - KYC Compliance (Admin)
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedKYCRecordDetailList'
+          description: ''
+  /api/v1/kyc/admin/applications/{id}/review/:
+    post:
+      operationId: kyc_admin_applications_review_create
+      summary: Approve or reject a KYC application
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - KYC Compliance (Admin)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KYCReviewRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/KYCReviewRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/KYCReviewRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KYCRecordDetail'
+          description: ''
+  /api/v1/kyc/status/:
+    get:
+      operationId: kyc_status_retrieve
+      summary: Check current user KYC verification status
+      tags:
+      - KYC Compliance
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          description: KYC Tier and latest record
+  /api/v1/kyc/submit/:
+    post:
+      operationId: kyc_submit_create
+      tags:
+      - kyc
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/KYCSubmitRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/KYCSubmitRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KYCSubmitRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KYCSubmit'
+          description: ''
+  /api/v1/payouts/:
+    get:
+      operationId: payouts_list
+      description: Returns all payouts and fee breakdowns credited to the vehicle
+        host.
+      summary: List host payout history and earnings
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Host Payouts Ledger
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedHostPayoutList'
+          description: ''
+  /api/v1/rentals/rentals/:
+    get:
+      operationId: rentals_rentals_list
+      description: Returns all bookings where the user is either the renter or the
+        host.
+      summary: List user rental agreements
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Rental Bookings
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRentalDetailList'
+          description: ''
+    post:
+      operationId: rentals_rentals_create
+      description: Initiates a rental booking. Transitions status to AWAITING_PAYMENT
+        for Soroban escrow deposit.
+      summary: Create vehicle rental booking agreement
+      tags:
+      - Rental Bookings
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RentalCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RentalCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RentalCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalDetail'
+          description: ''
+  /api/v1/rentals/rentals/{id}/:
+    get:
+      operationId: rentals_rentals_retrieve
+      description: Inspect pricing breakdown, rental dates, vehicle, host, and escrow
+        status.
+      summary: Retrieve rental details and breakdown
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this rental.
+        required: true
+      tags:
+      - Rental Bookings
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalDetail'
+          description: ''
+    put:
+      operationId: rentals_rentals_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this rental.
+        required: true
+      tags:
+      - rentals
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RentalDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RentalDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RentalDetailRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalDetail'
+          description: ''
+    patch:
+      operationId: rentals_rentals_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this rental.
+        required: true
+      tags:
+      - rentals
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRentalDetailRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRentalDetailRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRentalDetailRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalDetail'
+          description: ''
+    delete:
+      operationId: rentals_rentals_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this rental.
+        required: true
+      tags:
+      - rentals
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/rentals/vehicles/:
+    get:
+      operationId: rentals_vehicles_list
+      description: Browse peer-to-peer vehicles available for rental with pricing
+        in Stellar USDC.
+      summary: List active mobility rental vehicles
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Mobility Vehicles
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedVehicleList'
+          description: ''
+    post:
+      operationId: rentals_vehicles_create
+      description: Host adds a vehicle to the peer-to-peer marketplace.
+      summary: List vehicle for rental (Hosts only)
+      tags:
+      - Mobility Vehicles
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VehicleRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VehicleRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: ''
+  /api/v1/rentals/vehicles/{id}/:
+    get:
+      operationId: rentals_vehicles_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this vehicle.
+        required: true
+      tags:
+      - rentals
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: ''
+    put:
+      operationId: rentals_vehicles_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this vehicle.
+        required: true
+      tags:
+      - rentals
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VehicleRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VehicleRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: ''
+    patch:
+      operationId: rentals_vehicles_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this vehicle.
+        required: true
+      tags:
+      - rentals
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedVehicleRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedVehicleRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedVehicleRequest'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+          description: ''
+    delete:
+      operationId: rentals_vehicles_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this vehicle.
+        required: true
+      tags:
+      - rentals
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    ActionEnum:
+      enum:
+      - APPROVE
+      - REJECT
+      type: string
+      description: |-
+        * `APPROVE` - APPROVE
+        * `REJECT` - REJECT
+    AdminDashboard:
+      type: object
+      properties:
+        total_volume_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        confirmed_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        pending_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        total_host_payouts_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        platform_fees_collected_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        total_users_count:
+          type: integer
+        active_rentals_count:
+          type: integer
+        pending_kyc_count:
+          type: integer
+      required:
+      - active_rentals_count
+      - confirmed_usdc
+      - pending_kyc_count
+      - pending_usdc
+      - platform_fees_collected_usdc
+      - total_host_payouts_usdc
+      - total_users_count
+      - total_volume_usdc
+    ContractEventLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        event_topic:
+          type: string
+          maxLength: 100
+        tx_hash:
+          type: string
+          nullable: true
+          maxLength: 64
+        ledger_sequence:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        raw_data: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - event_topic
+      - id
+    DocumentTypeEnum:
+      enum:
+      - NATIONAL_ID
+      - PASSPORT
+      - DRIVERS_LICENSE
+      - VEHICLE_LOGBOOK
+      type: string
+      description: |-
+        * `NATIONAL_ID` - National ID Card
+        * `PASSPORT` - International Passport
+        * `DRIVERS_LICENSE` - Driver License
+        * `VEHICLE_LOGBOOK` - Vehicle Ownership Logbook (Host)
+    EscrowDepositSubmitRequest:
+      type: object
+      properties:
+        transaction_hash:
+          type: string
+          minLength: 64
+          description: Stellar / Soroban transaction hash
+          maxLength: 64
+      required:
+      - transaction_hash
+    EscrowDisputeRequest:
+      type: object
+      properties:
+        host_damage_award_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+          description: Amount of security deposit awarded to host for vehicle damages
+        renter_deposit_refund_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+          description: Amount of remaining security deposit refunded back to renter
+        dispute_reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+      required:
+      - dispute_reason
+      - host_damage_award_usdc
+      - renter_deposit_refund_usdc
+    EscrowStatus:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        rental_code:
+          type: string
+          readOnly: true
+        contract_id:
+          type: string
+          description: Soroban Contract Address (C...)
+          maxLength: 56
+        agreement_symbol:
+          type: string
+          description: Short identifier for Soroban contract storage
+          maxLength: 32
+        token_address:
+          type: string
+          description: USDC SAC Address
+          maxLength: 56
+        total_locked_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        rental_fee_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        deposit_fee_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        platform_fee_bps:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        status:
+          $ref: '#/components/schemas/EscrowStatusStatusEnum'
+        deposit_tx_hash:
+          type: string
+          nullable: true
+          maxLength: 64
+        settlement_tx_hash:
+          type: string
+          nullable: true
+          maxLength: 64
+        funded_at:
+          type: string
+          format: date-time
+          nullable: true
+        settled_at:
+          type: string
+          format: date-time
+          nullable: true
+        event_logs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContractEventLog'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - agreement_symbol
+      - contract_id
+      - created_at
+      - deposit_fee_usdc
+      - event_logs
+      - id
+      - rental_code
+      - rental_fee_usdc
+      - token_address
+      - total_locked_usdc
+    EscrowStatusStatusEnum:
+      enum:
+      - CREATED
+      - FUNDED
+      - COMPLETED
+      - DISPUTED
+      - CANCELLED
+      type: string
+      description: |-
+        * `CREATED` - Created / Awaiting Deposit
+        * `FUNDED` - Funded & Active
+        * `COMPLETED` - Completed & Disbursed
+        * `DISPUTED` - Disputed & Arbitrated
+        * `CANCELLED` - Cancelled & Refunded
+    HostDashboard:
+      type: object
+      properties:
+        total_earned_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        pending_payout_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        vehicles_listed_count:
+          type: integer
+        active_bookings_count:
+          type: integer
+        completed_bookings_count:
+          type: integer
+      required:
+      - active_bookings_count
+      - completed_bookings_count
+      - pending_payout_usdc
+      - total_earned_usdc
+      - vehicles_listed_count
+    HostPayout:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        rental_code:
+          type: string
+          readOnly: true
+        vehicle_name:
+          type: string
+          readOnly: true
+        gross_rental_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        platform_fee_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        net_payout_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        status:
+          $ref: '#/components/schemas/HostPayoutStatusEnum'
+        tx_hash:
+          type: string
+          nullable: true
+          maxLength: 64
+        settled_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - gross_rental_usdc
+      - id
+      - net_payout_usdc
+      - platform_fee_usdc
+      - rental_code
+      - vehicle_name
+    HostPayoutStatusEnum:
+      enum:
+      - PENDING
+      - PROCESSING
+      - COMPLETED
+      - FAILED
+      type: string
+      description: |-
+        * `PENDING` - Pending Settlement
+        * `PROCESSING` - Processing on Stellar
+        * `COMPLETED` - Completed & Paid
+        * `FAILED` - Settlement Failed
+    KYCRecordDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        user_email:
+          type: string
+          format: email
+          readOnly: true
+        user_role:
+          type: string
+          readOnly: true
+        document_type:
+          $ref: '#/components/schemas/DocumentTypeEnum'
+        document_number:
+          type: string
+          maxLength: 50
+        document_front:
+          type: string
+          format: uri
+        document_back:
+          type: string
+          format: uri
+          nullable: true
+        selfie_image:
+          type: string
+          format: uri
+          nullable: true
+        status:
+          $ref: '#/components/schemas/StatusA66Enum'
+        rejection_reason:
+          type: string
+          nullable: true
+        reviewed_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - document_front
+      - document_number
+      - document_type
+      - id
+      - reviewed_at
+      - user_email
+      - user_role
+    KYCReviewRequest:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        rejection_reason:
+          type: string
+      required:
+      - action
+    KYCSubmit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        document_type:
+          $ref: '#/components/schemas/DocumentTypeEnum'
+        document_number:
+          type: string
+          maxLength: 50
+        document_front:
+          type: string
+          format: uri
+        document_back:
+          type: string
+          format: uri
+          nullable: true
+        selfie_image:
+          type: string
+          format: uri
+          nullable: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusA66Enum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - document_front
+      - document_number
+      - document_type
+      - id
+      - status
+    KYCSubmitRequest:
+      type: object
+      properties:
+        document_type:
+          $ref: '#/components/schemas/DocumentTypeEnum'
+        document_number:
+          type: string
+          minLength: 1
+          maxLength: 50
+        document_front:
+          type: string
+          format: binary
+        document_back:
+          type: string
+          format: binary
+          nullable: true
+        selfie_image:
+          type: string
+          format: binary
+          nullable: true
+      required:
+      - document_front
+      - document_number
+      - document_type
+    KycTierEnum:
+      enum:
+      - TIER0
+      - TIER1
+      - TIER2
+      type: string
+      description: |-
+        * `TIER0` - Unverified
+        * `TIER1` - Tier 1 - Basic Info
+        * `TIER2` - Tier 2 - Verified Identity & License
+    PaginatedHostPayoutList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/HostPayout'
+    PaginatedKYCRecordDetailList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/KYCRecordDetail'
+    PaginatedRentalDetailList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/RentalDetail'
+    PaginatedVehicleList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Vehicle'
+    PatchedRentalDetailRequest:
+      type: object
+      properties:
+        rental_code:
+          type: string
+          minLength: 1
+          maxLength: 30
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        total_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        rental_amount_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        deposit_amount_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        total_due_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        status:
+          $ref: '#/components/schemas/RentalDetailStatusEnum'
+    PatchedUserProfileRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 25
+        primary_stellar_address:
+          type: string
+          nullable: true
+          maxLength: 56
+    PatchedVehicleRequest:
+      type: object
+      properties:
+        make_model:
+          type: string
+          minLength: 1
+          maxLength: 100
+        registration_number:
+          type: string
+          minLength: 1
+          maxLength: 50
+        location:
+          type: string
+          minLength: 1
+          maxLength: 150
+        daily_rate_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        deposit_amount_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        image_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        is_active:
+          type: boolean
+    RentalCreateRequest:
+      type: object
+      properties:
+        vehicle:
+          type: string
+          format: uuid
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+      required:
+      - end_date
+      - start_date
+      - vehicle
+    RentalDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        rental_code:
+          type: string
+          maxLength: 30
+        vehicle:
+          allOf:
+          - $ref: '#/components/schemas/Vehicle'
+          readOnly: true
+        renter:
+          allOf:
+          - $ref: '#/components/schemas/UserProfile'
+          readOnly: true
+        host:
+          allOf:
+          - $ref: '#/components/schemas/UserProfile'
+          readOnly: true
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        total_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        rental_amount_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        deposit_amount_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        total_due_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        status:
+          $ref: '#/components/schemas/RentalDetailStatusEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - deposit_amount_usdc
+      - end_date
+      - host
+      - id
+      - rental_amount_usdc
+      - rental_code
+      - renter
+      - start_date
+      - total_due_usdc
+      - updated_at
+      - vehicle
+    RentalDetailRequest:
+      type: object
+      properties:
+        rental_code:
+          type: string
+          minLength: 1
+          maxLength: 30
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        total_days:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        rental_amount_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        deposit_amount_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        total_due_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        status:
+          $ref: '#/components/schemas/RentalDetailStatusEnum'
+      required:
+      - deposit_amount_usdc
+      - end_date
+      - rental_amount_usdc
+      - rental_code
+      - start_date
+      - total_due_usdc
+    RentalDetailStatusEnum:
+      enum:
+      - DRAFT
+      - AWAITING_PAYMENT
+      - CONFIRMED
+      - ACTIVE
+      - COMPLETED
+      - CANCELLED
+      - DISPUTED
+      type: string
+      description: |-
+        * `DRAFT` - Draft
+        * `AWAITING_PAYMENT` - Awaiting Escrow Deposit
+        * `CONFIRMED` - Confirmed & Funded
+        * `ACTIVE` - Active / In Progress
+        * `COMPLETED` - Completed & Settled
+        * `CANCELLED` - Cancelled & Refunded
+        * `DISPUTED` - Dispute Pending Arbitration
+    RoleEnum:
+      enum:
+      - RENTER
+      - HOST
+      - ADMIN
+      type: string
+      description: |-
+        * `RENTER` - Renter
+        * `HOST` - Vehicle Host
+        * `ADMIN` - Platform Administrator
+    StatusA66Enum:
+      enum:
+      - PENDING
+      - APPROVED
+      - REJECTED
+      type: string
+      description: |-
+        * `PENDING` - Pending Verification
+        * `APPROVED` - Approved / Verified
+        * `REJECTED` - Rejected
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        kyc_tier:
+          allOf:
+          - $ref: '#/components/schemas/KycTierEnum'
+          readOnly: true
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 25
+        primary_stellar_address:
+          type: string
+          nullable: true
+          maxLength: 56
+        wallets:
+          type: array
+          items:
+            $ref: '#/components/schemas/WalletAccount'
+          readOnly: true
+        date_joined:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - date_joined
+      - email
+      - id
+      - kyc_tier
+      - username
+      - wallets
+    UserProfileRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 25
+        primary_stellar_address:
+          type: string
+          nullable: true
+          maxLength: 56
+      required:
+      - email
+      - username
+    UserSigninRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - email
+      - password
+    UserSignup:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          default: RENTER
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 25
+        primary_stellar_address:
+          type: string
+          nullable: true
+          maxLength: 56
+      required:
+      - email
+      - id
+      - username
+    UserSignupRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        password:
+          type: string
+          writeOnly: true
+          minLength: 8
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          default: RENTER
+        phone_number:
+          type: string
+          nullable: true
+          maxLength: 25
+        primary_stellar_address:
+          type: string
+          nullable: true
+          maxLength: 56
+      required:
+      - email
+      - password
+      - username
+    Vehicle:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        host_email:
+          type: string
+          format: email
+          readOnly: true
+        host_stellar_address:
+          type: string
+          readOnly: true
+        make_model:
+          type: string
+          maxLength: 100
+        registration_number:
+          type: string
+          maxLength: 50
+        location:
+          type: string
+          maxLength: 150
+        daily_rate_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        deposit_amount_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        image_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - host_email
+      - host_stellar_address
+      - id
+      - make_model
+      - registration_number
+    VehicleRequest:
+      type: object
+      properties:
+        make_model:
+          type: string
+          minLength: 1
+          maxLength: 100
+        registration_number:
+          type: string
+          minLength: 1
+          maxLength: 50
+        location:
+          type: string
+          minLength: 1
+          maxLength: 150
+        daily_rate_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        deposit_amount_usdc:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,11}(?:\.\d{0,7})?$
+        image_url:
+          type: string
+          format: uri
+          nullable: true
+          maxLength: 200
+        is_active:
+          type: boolean
+      required:
+      - make_model
+      - registration_number
+    WalletAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        public_key:
+          type: string
+          maxLength: 56
+        wallet_type:
+          $ref: '#/components/schemas/WalletTypeEnum'
+        is_primary:
+          type: boolean
+        last_connected_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - last_connected_at
+      - public_key
+    WalletAccountRequest:
+      type: object
+      properties:
+        public_key:
+          type: string
+          minLength: 1
+          maxLength: 56
+        wallet_type:
+          $ref: '#/components/schemas/WalletTypeEnum'
+        is_primary:
+          type: boolean
+      required:
+      - public_key
+    WalletChallengeRequestRequest:
+      type: object
+      properties:
+        public_key:
+          type: string
+          minLength: 56
+          description: Stellar G... public key
+          maxLength: 56
+      required:
+      - public_key
+    WalletChallengeResponse:
+      type: object
+      properties:
+        network:
+          type: string
+        network_passphrase:
+          type: string
+        transaction_xdr:
+          type: string
+          description: Base64 encoded SEP-0010 challenge transaction
+      required:
+      - network
+      - network_passphrase
+      - transaction_xdr
+    WalletTypeEnum:
+      enum:
+      - FREIGHTER
+      - LOBSTR
+      - XBULL
+      - OTHER
+      type: string
+      description: |-
+        * `FREIGHTER` - Freighter Wallet
+        * `LOBSTR` - Lobstr
+        * `XBULL` - xBull
+        * `OTHER` - Other Stellar Wallet
+    WalletVerifyRequestRequest:
+      type: object
+      properties:
+        public_key:
+          type: string
+          minLength: 56
+          maxLength: 56
+        signed_xdr:
+          type: string
+          minLength: 1
+          description: Base64 encoded signed challenge transaction
+        wallet_type:
+          allOf:
+          - $ref: '#/components/schemas/WalletTypeEnum'
+          default: FREIGHTER
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          default: RENTER
+          description: |-
+            Role to assign if creating a new user upon wallet connect
+
+            * `RENTER` - Renter
+            * `HOST` - Vehicle Host
+            * `ADMIN` - Platform Administrator
+      required:
+      - public_key
+      - signed_xdr
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

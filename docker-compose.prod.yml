@@ -1,0 +1,187 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: payarmove_prod_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-payarmove_db}
+      POSTGRES_USER: ${POSTGRES_USER:-payarmove_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-payarmove_secret}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-payarmove_user} -d ${POSTGRES_DB:-payarmove_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - payarmove_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: payarmove_prod_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - payarmove_network
+
+  web:
+    build: .
+    container_name: payarmove_prod_web
+    restart: unless-stopped
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120
+    volumes:
+      - .:/app
+      - static_data:/app/staticfiles
+      - media_data:/app/media
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - DJANGO_DEBUG=False
+      - POSTGRES_HOST=db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - payarmove_network
+
+  celery_worker:
+    build: .
+    container_name: payarmove_prod_celery_worker
+    restart: unless-stopped
+    command: celery -A config worker -l info --concurrency=4
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - POSTGRES_HOST=db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - payarmove_network
+
+  celery_beat:
+    build: .
+    container_name: payarmove_prod_celery_beat
+    restart: unless-stopped
+    command: celery -A config beat -l info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - POSTGRES_HOST=db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - payarmove_network
+
+  soroban_indexer:
+    build: .
+    container_name: payarmove_prod_soroban_indexer
+    restart: unless-stopped
+    command: python manage.py run_soroban_event_listener
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.production
+      - POSTGRES_HOST=db
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - payarmove_network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: payarmove_prod_frontend
+    restart: unless-stopped
+    environment:
+      - VITE_API_BASE_URL=https://api.payarmove.com/api/v1
+      - VITE_FRONTEND_URL=https://payarmove.com
+      - VITE_VPS_IP=173.214.172.222
+    volumes:
+      - ./frontend:/app
+      - frontend_dist:/app/dist
+      - frontend_node_modules:/app/node_modules
+    command: sh -c "npm install && npm run build && tail -f /dev/null"
+    networks:
+      - payarmove_network
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: payarmove_prod_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/conf.d:/etc/nginx/conf.d:ro
+      - frontend_dist:/var/www/frontend/dist:ro
+      - static_data:/var/www/backend/staticfiles:ro
+      - media_data:/var/www/backend/media:ro
+      - certbot_etc:/etc/letsencrypt:ro
+      - certbot_var:/var/www/certbot:ro
+    depends_on:
+      - web
+      - frontend
+    networks:
+      - payarmove_network
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: payarmove_prod_certbot
+    restart: unless-stopped
+    volumes:
+      - certbot_etc:/etc/letsencrypt
+      - certbot_var:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    networks:
+      - payarmove_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_data:
+  media_data:
+  frontend_dist:
+  frontend_node_modules:
+  certbot_etc:
+  certbot_var:
+
+networks:
+  payarmove_network:
+    driver: bridge

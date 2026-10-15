@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" fill="none">
+  <defs>
+    <linearGradient id="avatarBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06372d" />
+      <stop offset="50%" stop-color="#0a4d3f" />
+      <stop offset="100%" stop-color="#042820" />
+    </linearGradient>
+    <linearGradient id="carBody" x1="0%" y1="0%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e2e8f0" />
+    </linearGradient>
+    <linearGradient id="windowGlass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#064e3b" stop-opacity="0.95" />
+    </linearGradient>
+    <filter id="carGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="3" flood-color="#000000" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Circular Badge Background -->
+  <circle cx="64" cy="64" r="62" fill="url(#avatarBg)" stroke="#10b981" stroke-opacity="0.2" stroke-width="2" />
+  
+  <!-- Subtle decorative ambient ring -->
+  <circle cx="64" cy="64" r="54" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1.5" stroke-dasharray="4 4" />
+
+  <!-- Car Silhouette / Body Group with Shadow -->
+  <g filter="url(#carGlow)">
+    <!-- Main Car Chassis & Roofline -->
+    <path
+      d="M24 74 C 24 71, 26 68, 30 67 L 42 66 L 52 49 C 54 46, 58 44, 63 44 L 81 44 C 86 44, 91 47, 94 51 L 102 64 L 105 65 C 109 66, 112 69, 112 73 L 112 79 C 112 82, 110 84, 107 84 L 101 84 C 99 78, 93 74, 86 74 C 79 74, 73 78, 71 84 L 57 84 C 55 78, 49 74, 42 74 C 35 74, 29 78, 27 84 L 21 84 C 18 84, 16 82, 16 79 L 16 76 C 16 73, 20 74, 24 74 Z"
+      fill="url(#carBody)"
+    />
+
+    <!-- Windows / Windshield Glass -->
+    <path
+      d="M54 51 L 46 64 L 66 64 L 66 50 L 59 50 C 56.5 50, 54.8 50.3, 54 51 Z"
+      fill="url(#windowGlass)"
+    />
+    <path
+      d="M70 50 L 70 64 L 91 64 L 84 52 C 82.5 50.5, 80 50, 77 50 Z"
+      fill="url(#windowGlass)"
+    />
+
+    <!-- Headlight & Taillight accents -->
+    <path d="M107 68 L 111 69 C 112 70, 112 72, 111 73 L 105 73 Z" fill="#38bdf8" />
+    <path d="M17 70 L 20 70 L 20 73 L 17 73 Z" fill="#f43f5e" />
+
+    <!-- Side crease line -->
+    <path d="M34 70 L 98 70" stroke="#cbd5e1" stroke-width="1.2" stroke-linecap="round" />
+
+    <!-- Front Wheel -->
+    <circle cx="86" cy="84" r="9" fill="#0f172a" stroke="#ffffff" stroke-width="1.5" />
+    <circle cx="86" cy="84" r="4.5" fill="#38bdf8" />
+    <circle cx="86" cy="84" r="2" fill="#ffffff" />
+
+    <!-- Rear Wheel -->
+    <circle cx="42" cy="84" r="9" fill="#0f172a" stroke="#ffffff" stroke-width="1.5" />
+    <circle cx="42" cy="84" r="4.5" fill="#38bdf8" />
+    <circle cx="42" cy="84" r="2" fill="#ffffff" />
+
+    <!-- Ground Speed Lines -->
+    <line x1="12" y1="96" x2="116" y2="96" stroke="#ffffff" stroke-opacity="0.15" stroke-width="2" stroke-linecap="round" />
+    <line x1="28" y1="100" x2="100" y2="100" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+</svg>
